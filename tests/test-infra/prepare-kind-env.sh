@@ -36,7 +36,7 @@ docker run -d -p $REGISTRY_PORT:$REGISTRY_PORT --name $REGISTRY_NAME --rm regist
 docker login http://$REGISTRY_NAME:$REGISTRY_PORT -u dapr -p 123456
 
 # kind
-cluster="$(kind get clusters 2>1 | grep dapr)"
+cluster="$(kind get clusters 2>&1 | grep dapr)"
 
 if [ -n "$cluster" ]; then
 	echo "existing cluster, now delete"
@@ -55,8 +55,20 @@ nodes:
   image: kindest/node:v1.22.0@sha256:b8bda84bb3a190e6e028b1760d277454a72267a5454b57db34437c34a588d047
 containerdConfigPatches:
 - |-
-  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:$REGISTRY_PORT"]
-    endpoint = ["http://$REGISTRY_NAME:$REGISTRY_PORT"]
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors."${REGISTRY_NAME}:${REGISTRY_PORT}"]
+    endpoint = ["http://${REGISTRY_NAME}:${REGISTRY_PORT}"]
 EOF
 
 docker network connect "kind" $REGISTRY_NAME
+
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: local-registry-hosting
+  namespace: kube-public
+data:
+  localRegistryHosting.v1: |
+    host: "${REGISTRY_NAME}:${REGISTRY_PORT}"
+    help: "https://kind.sigs.k8s.io/docs/user/local-registry/"
+EOF

@@ -17,6 +17,7 @@ cluster:
 usePassword: false
 
 master:
+  command:
   persistence:
     enabled: false
   affinity:
@@ -24,11 +25,11 @@ master:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
           - matchExpressions:
-            - key: kubernetes.io/os
-              operator: In
-              values:
-              - linux
-            - key: kubernetes.io/arch
-              operator: In
-              values:
-              - amd64
+              - key: kubernetes.io/os
+                operator: In
+                values:
+                  - linux
+
+image:
+  repository: redis
+  tag: 5.0.14

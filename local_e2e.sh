@@ -3,22 +3,10 @@
 SHELL_FLODER=$(cd "$(dirname "$0")";pwd)
 
 echo -e "====start cleanup"
-rm -rf "$SHELL_FLODER"/dist/*
+rm -rf "$SHELL_FLODER"/dist
 rm -rf "$SHELL_FLODER"/tests/e2e/**/dist
 rm -rf "$SHELL_FLODER"/tests/e2e/**/*.log
-
-#helmls=$(helm ls -n "$DAPR_NAMESPACE")
-#
-#if echo "${helmls}"|grep -q "dapr-redis"; then
-#	echo "has dapr-redis uninstall =========="
-#	helm uninstall dapr-redis "$DAPR_NAMESPACE"
-#fi
-
-#if echo "${helmls}"|grep -q "dapr-kafka"; then
-#	helm uninstall dapr-kafka "$DAPR_NAMESPACE"
-#fi
-
-#helm uninstall dapr -n "$DAPR_NAMESPACE"
+rm -rf "$SHELL_FLODER"/test_report*
 
 #make delete-test-namespace > /dev/zero 2>&1
 #kubectl delete MutatingWebhookConfiguration/dapr-sidecar-injector > /dev/zero 2>&1
@@ -57,12 +45,17 @@ echo -e "====start build test app"
 
 #make setup-test-components
 
-export E2E_TEST_APPS=actorjava actordotnet actorpython actorphp
+# set app to build, default to all
+export E2E_TEST_APPS=(actorjava actordotnet actorpython actorphp)
 
 # build e2e apps docker image under apps
-make build-e2e-app-all
+#make build-e2e-app-all
 
 # push e2e apps docker image to docker hub
-make push-e2e-app-all
+#make push-e2e-app-all
 
 echo "====e2e app push done"
+
+echo -e "====start run e2e test:\n\n\n"
+#export DAPR_E2E_TEST=actor_sdks
+#make test-e2e-all

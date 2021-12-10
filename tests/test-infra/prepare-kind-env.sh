@@ -26,13 +26,12 @@ mkdir -p $TEST_OUTPUT_FILE_PREFIX
 
 # registry
 running="$(docker inspect -f '{{.State.Running}}' "${REGISTRY_NAME}" 2>/dev/null || true)"
-if [ "${running}" == 'true' ]; then
-	echo "delete registry $REGISTRY_NAME"
-	docker stop $REGISTRY_NAME
+if [ "${running}" != 'true' ]; then
+	echo "registry not exist create new one"
+	docker run -d -p $REGISTRY_PORT:$REGISTRY_PORT --name $REGISTRY_NAME --rm registry:2
 fi
 
-docker run -d -p $REGISTRY_PORT:$REGISTRY_PORT --name $REGISTRY_NAME --rm registry:2
-
+echo "login registry"
 docker login http://$REGISTRY_NAME:$REGISTRY_PORT -u dapr -p 123456
 
 # kind

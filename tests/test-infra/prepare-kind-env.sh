@@ -23,12 +23,13 @@ export TEST_OUTPUT_FILE_PREFIX=$DAPR_TMP_BASE/test_report
 rm -rf $DAPR_TMP_BASE
 mkdir -p $DAPR_CONTAINER_LOG_PATH
 mkdir -p $TEST_OUTPUT_FILE_PREFIX
+mkdir -p /opt/registry
 
 # registry
 running="$(docker inspect -f '{{.State.Running}}' "${REGISTRY_NAME}" 2>/dev/null || true)"
 if [ "${running}" != 'true' ]; then
 	echo "registry not exist create new one"
-	docker run -d -p $REGISTRY_PORT:$REGISTRY_PORT --name $REGISTRY_NAME --rm registry:2
+	docker run -d -p $REGISTRY_PORT:$REGISTRY_PORT -v /opt/registry:/var/lib/registry --name $REGISTRY_NAME --rm registry:2
 fi
 
 echo "login registry"

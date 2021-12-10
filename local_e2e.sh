@@ -24,13 +24,13 @@ export TARGET_ARCH=arm64
 export TARGET_OS=linux
 
 # Build Linux binaries
-#make build-linux
+make build-linux
 
 # Build Docker image with Linux binaries
 #make docker-build
 
 # Push docker image to your dockerhub registry
-#make docker-push
+make docker-push
 
 echo -e "====dapr build & push done, start deploy"
 

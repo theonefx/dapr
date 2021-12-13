@@ -26,24 +26,16 @@ affinity:
     requiredDuringSchedulingIgnoredDuringExecution:
       nodeSelectorTerms:
         - matchExpressions:
-            - key: kubernetes.io/os
-              operator: In
-              values:
-                - linux
-
-image:
-  repository: moukoublen/kafka
-  tag: 2.12-2.8.1
-
-command:
+          - key: kubernetes.io/os
+            operator: In
+            values:
+            - linux
+          - key: kubernetes.io/arch
+            operator: In
+            values:
+            - amd64
 
 zookeeper:
-  image:
-    repository: zookeeper
-    tag: 3.7.0
-  diagnosticMode:
-    enabled: true
-    command:
   persistence:
     enabled: false
   affinity:
@@ -51,7 +43,11 @@ zookeeper:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
           - matchExpressions:
-              - key: kubernetes.io/os
-                operator: In
-                values:
-                  - linux
+            - key: kubernetes.io/os
+              operator: In
+              values:
+              - linux
+            - key: kubernetes.io/arch
+              operator: In
+              values:
+              - amd64

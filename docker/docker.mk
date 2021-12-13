@@ -87,41 +87,33 @@ ifeq ($(TARGET_ARCH),)
 	$(error TARGET_ARCH environment variable must be set)
 endif
 
-builfx-builder:
+buildx-builder:
 ifneq ($(TARGET_ARCH),$(TARGET_ARCH_LOCAL))
-	-$(DOCKER) buildx create --name daprbuild --buildkitd-flags '--allow-insecure-entitlement security.insecure' --driver-opt network=host --config buildx.conf --node daprbuild0
+	-$(DOCKER) buildx create --name daprbuild --buildkitd-flags '--allow-insecure-entitlement security.insecure' --driver-opt network=host --config buildx.conf --node daprbuild --use
 endif
 
-docker-build: check-docker-env check-arch builfx-builder
+docker-build: check-docker-env check-arch buildx-builder
 	$(info Building $(DOCKER_IMAGE_TAG) docker image ...)
-ifeq ($(TARGET_ARCH),amd64)
+ifeq ($(TARGET_ARCH),$(TARGET_ARCH_LOCAL))
 	$(DOCKER) build --build-arg PKG_FILES=* -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 	$(DOCKER) build --build-arg PKG_FILES=daprd -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_RUNTIME_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 	$(DOCKER) build --build-arg PKG_FILES=placement -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_PLACEMENT_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 	$(DOCKER) build --build-arg PKG_FILES=sentry -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_SENTRY_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 else
 	-$(DOCKER) run --rm --privileged multiarch/qemu-user-static --reset -p yes
-	$(DOCKER) buildx build --builder daprbuild --build-arg PKG_FILES=* --platform $(DOCKER_IMAGE_PLATFORM) -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
-	$(DOCKER) buildx build --builder daprbuild --build-arg PKG_FILES=daprd --platform $(DOCKER_IMAGE_PLATFORM) -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_RUNTIME_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
-	$(DOCKER) buildx build --builder daprbuild --build-arg PKG_FILES=placement --platform $(DOCKER_IMAGE_PLATFORM) -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_PLACEMENT_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
-	$(DOCKER) buildx build --builder daprbuild --build-arg PKG_FILES=sentry --platform $(DOCKER_IMAGE_PLATFORM) -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_SENTRY_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
+	$(DOCKER) buildx build --builder daprbuild --platform $(DOCKER_IMAGE_PLATFORM) --build-arg PKG_FILES=* -o type=docker -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
+	$(DOCKER) buildx build --builder daprbuild --platform $(DOCKER_IMAGE_PLATFORM) --build-arg PKG_FILES=daprd -o type=docker -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_RUNTIME_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
+	$(DOCKER) buildx build --builder daprbuild --platform $(DOCKER_IMAGE_PLATFORM) --build-arg PKG_FILES=placement -o type=docker -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_PLACEMENT_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
+	$(DOCKER) buildx build --builder daprbuild --platform $(DOCKER_IMAGE_PLATFORM) --build-arg PKG_FILES=sentry -o type=docker -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_SENTRY_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 endif
 
-
 # push docker image to the registry
-docker-push: builfx-builder
+docker-push: docker-build
 	$(info Pushing $(DOCKER_IMAGE_TAG) docker image ...)
-ifeq ($(TARGET_ARCH),amd64)
 	$(DOCKER) push $(DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 	$(DOCKER) push $(DAPR_RUNTIME_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 	$(DOCKER) push $(DAPR_PLACEMENT_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 	$(DOCKER) push $(DAPR_SENTRY_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
-else
-	$(DOCKER) buildx build --builder daprbuild --build-arg PKG_FILES=* --platform $(DOCKER_IMAGE_PLATFORM) -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH) --push
-	$(DOCKER) buildx build --builder daprbuild --build-arg PKG_FILES=daprd --platform $(DOCKER_IMAGE_PLATFORM) -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_RUNTIME_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH) --push
-	$(DOCKER) buildx build --builder daprbuild --build-arg PKG_FILES=placement --platform $(DOCKER_IMAGE_PLATFORM) -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_PLACEMENT_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH) --push
-	$(DOCKER) buildx build --builder daprbuild --build-arg PKG_FILES=sentry --platform $(DOCKER_IMAGE_PLATFORM) -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_SENTRY_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH) --push
-endif
 
 # push docker image to kind cluster
 docker-push-kind: docker-build

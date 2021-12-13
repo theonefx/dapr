@@ -15,5 +15,7 @@ auth:
   enabled: false
 persistentVolume:
   enabled: false
+persistence:
+  enabled: false
 tls:
   enabled: false

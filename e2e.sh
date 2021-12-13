@@ -13,8 +13,10 @@ kubectl delete MutatingWebhookConfiguration/dapr-sidecar-injector > /dev/zero 2>
 
 make create-test-namespace
 
+make setup-test-env
 #make setup-test-env-redis
 #make setup-test-env-kafka
+#make setup-test-env-mongodb
 
 echo -e "====start build & push"
 
@@ -22,9 +24,10 @@ export GOARCH=amd64
 export GOOS=linux
 export TARGET_ARCH=amd64
 export TARGET_OS=linux
-export REGISTRY_NAME=kind-registry
-export REGISTRY_PORT=5000
-export DAPR_REGISTRY=kind-registry:5000/dapr
+export REGISTRY_NAME=edge-test-registry.cn-hangzhou.cr.aliyuncs.com
+export REGISTRY_PORT=80
+export DAPR_REGISTRY=edge-test-registry.cn-hangzhou.cr.aliyuncs.com/dapr
+export DAPR_TEST_REGISTRY=edge-test-registry.cn-hangzhou.cr.aliyuncs.com/dapr
 
 # Build Linux binaries
 make build-linux
@@ -49,7 +52,7 @@ make setup-test-components
 echo -e "====start build test app\n\n\n"
 
 # set app to build, default to all
-export E2E_TEST_APPS=(actorjava actordotnet actorpython actorphp)
+export E2E_TEST_APPS=(actorjava actordotnet actorpython actorphp actorapp actorclientapp actorfeatures actorinvocationapp actorreentrancy)
 
 # build e2e apps docker image under apps
 make build-e2e-app-all

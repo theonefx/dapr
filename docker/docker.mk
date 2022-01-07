@@ -100,7 +100,6 @@ ifeq ($(TARGET_ARCH),$(TARGET_ARCH_LOCAL))
 	$(DOCKER) build --build-arg PKG_FILES=placement -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_PLACEMENT_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 	$(DOCKER) build --build-arg PKG_FILES=sentry -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_SENTRY_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 else
-	-$(DOCKER) run --rm --privileged multiarch/qemu-user-static --reset -p yes
 	$(DOCKER) buildx build --builder daprbuild --platform $(DOCKER_IMAGE_PLATFORM) --build-arg PKG_FILES=* -o type=docker -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 	$(DOCKER) buildx build --builder daprbuild --platform $(DOCKER_IMAGE_PLATFORM) --build-arg PKG_FILES=daprd -o type=docker -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_RUNTIME_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
 	$(DOCKER) buildx build --builder daprbuild --platform $(DOCKER_IMAGE_PLATFORM) --build-arg PKG_FILES=placement -o type=docker -f $(DOCKERFILE_DIR)/$(DOCKERFILE) $(BIN_PATH) -t $(DAPR_PLACEMENT_DOCKER_IMAGE_TAG)-$(TARGET_OS)-$(TARGET_ARCH)
